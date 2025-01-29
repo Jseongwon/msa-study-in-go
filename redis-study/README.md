@@ -26,8 +26,17 @@
 ## 실행 방법
 
 1. Redis 서버를 실행합니다.
-2. 이 프로그램을 실행하여 채팅 서버를 시작합니다.
-3. 웹 브라우저에서 `http://localhost:8080/ws`에 접속하여 WebSocket 연결을 테스트합니다.
+2. 필요한 Go 패키지를 설치합니다:
+   ```bash
+   go get github.com/gin-gonic/gin
+   go get github.com/go-redis/redis/v8
+   go get github.com/gorilla/websocket
+   go get github.com/lib/pq
+   go get firebase.google.com/go
+   go get google.golang.org/api/option
+   ```
+3. 이 프로그램을 실행하여 채팅 서버를 시작합니다.
+4. 웹 브라우저에서 `http://localhost:8080/ws`에 접속하여 WebSocket 연결을 테스트합니다.
 
 ## TodoList
 
