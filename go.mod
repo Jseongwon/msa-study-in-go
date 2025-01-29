@@ -1,4 +1,4 @@
-module redis-study
+module msa-study
 
 go 1.23.4
 

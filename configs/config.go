@@ -35,3 +35,15 @@ func LoadDBConfig() DBConfig {
 		Port:     os.Getenv("DB_PORT"),
 	}
 }
+
+// KakaoConfig holds the configuration for Kakao API
+type KakaoConfig struct {
+	APIKey string
+}
+
+// LoadKakaoConfig loads the Kakao API configuration from environment variables
+func LoadKakaoConfig() KakaoConfig {
+	return KakaoConfig{
+		APIKey: os.Getenv("KAKAO_API_KEY"),
+	}
+}

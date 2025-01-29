@@ -1,13 +1,13 @@
-package main
+package noti_study
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"log"
+	"msa-study/configs"
 	"net/http"
 	"os"
-	"redis-study/configs"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"

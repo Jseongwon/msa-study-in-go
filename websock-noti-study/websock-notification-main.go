@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"msa-study/configs"
 	"net/http"
-	"redis-study/configs"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
