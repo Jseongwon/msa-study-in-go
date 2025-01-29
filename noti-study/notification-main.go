@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"redis-study/configs"
 
-	"noti-study/configs"
-
+	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -44,40 +44,98 @@ func sendPushNotification(c *gin.Context) {
 	email := c.PostForm("email")
 	targetEmail := c.PostForm("target_email")
 
-	var targetToken string
-	err := db.QueryRow("SELECT token FROM device_tokens WHERE email = $1", targetEmail).Scan(&targetToken)
+	targetToken, err := getTokenByEmail(targetEmail)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve target token"})
 		return
 	}
 
-	fcmConfig := configs.LoadFCMConfig()
-	opt := option.WithAPIKey(fcmConfig.APIKey)
-	app, err := firebase.NewApp(context.Background(), nil, opt)
-	if err != nil {
-		log.Fatalf("error initializing app: %v", err)
-	}
-
-	client, err := app.Messaging(context.Background())
-	if err != nil {
-		log.Fatalf("error getting Messaging client: %v", err)
-	}
-
-	message := &messaging.Message{
-		Token: targetToken,
-		Notification: &messaging.Notification{
-			Title: "New Message",
-			Body:  fmt.Sprintf("You have a new message from %s", email),
-		},
-	}
-
-	_, err = client.Send(context.Background(), message)
+	err = sendFCMMessage(targetToken, fmt.Sprintf("You have a new message from %s", email), "default_channel")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send push notification"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Push notification sent successfully"})
+}
+
+func getTokenByEmail(email string) (string, error) {
+	var token string
+	err := db.QueryRow("SELECT token FROM device_tokens WHERE email = $1", email).Scan(&token)
+	return token, err
+}
+
+func sendFCMMessage(token, body, channelID string) error {
+	fcmConfig := configs.LoadFCMConfig()
+	opt := option.WithAPIKey(fcmConfig.APIKey)
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		return fmt.Errorf("error initializing app: %v", err)
+	}
+
+	client, err := app.Messaging(context.Background())
+	if err != nil {
+		return fmt.Errorf("error getting Messaging client: %v", err)
+	}
+
+	message := &messaging.Message{
+		Token: token,
+		Notification: &messaging.Notification{
+			Title: "New Message",
+			Body:  body,
+		},
+		Android: &messaging.AndroidConfig{
+			Notification: &messaging.AndroidNotification{
+				ChannelID: channelID,
+			},
+		},
+	}
+
+	_, err = client.Send(context.Background(), message)
+	return err
+}
+
+func sendTopicMessage(c *gin.Context) {
+	topic := c.PostForm("topic")
+	body := c.PostForm("body")
+
+	err := sendFCMTopicMessage(topic, body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send topic message"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Topic message sent successfully"})
+}
+
+func sendFCMTopicMessage(topic, body string) error {
+	fcmConfig := configs.LoadFCMConfig()
+	opt := option.WithAPIKey(fcmConfig.APIKey)
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		return fmt.Errorf("error initializing app: %v", err)
+	}
+
+	client, err := app.Messaging(context.Background())
+	if err != nil {
+		return fmt.Errorf("error getting Messaging client: %v", err)
+	}
+
+	message := &messaging.Message{
+		Topic: topic,
+		Notification: &messaging.Notification{
+			Title: "New Topic Message",
+			Body:  body,
+		},
+		Android: &messaging.AndroidConfig{
+			Notification: &messaging.AndroidNotification{
+				ChannelID: "default_channel",
+			},
+		},
+	}
+
+	_, err = client.Send(context.Background(), message)
+	return err
 }
 
 func main() {
@@ -87,6 +145,7 @@ func main() {
 
 	r.POST("/register", registerDeviceToken)
 	r.POST("/send", sendPushNotification)
+	r.POST("/send-topic", sendTopicMessage)
 
 	port := os.Getenv("PORT")
 	if port == "" {
