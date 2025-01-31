@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"msa-study/configs"
 	"net/http"
 	"os"
+
+	"notification-study/configs"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
