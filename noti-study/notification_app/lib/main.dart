@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -23,11 +25,13 @@ class MyApp extends StatelessWidget {
 }
 
 class DeviceTokenScreen extends StatefulWidget {
+  const DeviceTokenScreen({super.key});
+
   @override
-  _DeviceTokenScreenState createState() => _DeviceTokenScreenState();
+  DeviceTokenScreenState createState() => DeviceTokenScreenState();
 }
 
-class _DeviceTokenScreenState extends State<DeviceTokenScreen> {
+class DeviceTokenScreenState extends State<DeviceTokenScreen> {
   String? _deviceToken;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
@@ -49,7 +53,7 @@ class _DeviceTokenScreenState extends State<DeviceTokenScreen> {
 
   Future<void> _generateDeviceToken() async {
     if (_deviceToken == null) {
-      String newToken = Uuid().v4(); // UUID를 사용하여 새로운 토큰 생성
+      String newToken = const Uuid().v4();
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('deviceToken', newToken);
       setState(() {
@@ -72,7 +76,6 @@ class _DeviceTokenScreenState extends State<DeviceTokenScreen> {
             android: AndroidNotificationDetails(
               'channel_id',
               'channel_name',
-              'channel_description',
               importance: Importance.max,
               priority: Priority.high,
             ),
